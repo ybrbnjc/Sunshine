@@ -4,12 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-	android:padding="16dp">
-	
-	<ListView
-		android:id="@+id/listview_forecast"
-		android:layout_height="match_parent"
-		android:layout_width="match_parent"/>
+    android:padding="16dp">
+
+    <ListView
+        android:id="@+id/listview_forecast"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
 </FrameLayout>
 
