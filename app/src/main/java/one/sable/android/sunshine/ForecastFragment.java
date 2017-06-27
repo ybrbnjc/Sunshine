@@ -36,7 +36,7 @@ public class ForecastFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
+		this.setHasOptionsMenu(false);
         String[] fakeDataArray = new String[]{
                 "Yesterday - Rainy - 17/8",
                 "Today - Cloudy - 16/8",
