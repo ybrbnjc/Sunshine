@@ -20,11 +20,16 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 /**
  * Created by admin on 26.06.2017.
  */
 public class ForecastFragment extends Fragment {
+	
+	public String weathwrAPIUrl = "http://api.openweathermap.org/data/2.5/forecast?q=Moscow,ru&appid=2bec85f095f36e589c16cc58de321265&units=metric";
 
     private ArrayAdapter<String> mForecastAdapter;
 
@@ -32,11 +37,40 @@ public class ForecastFragment extends Fragment {
 
     }
 
+	@Override
+	public void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		this.setHasOptionsMenu(true);
+	}	
+	
+	@Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.layout.forecastfragment, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_refresh) {
+			new FetchWeatherTask().execute(weathwrAPIUrl);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+	
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-		this.setHasOptionsMenu(false);
+      	View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+		
         String[] fakeDataArray = new String[]{
                 "Yesterday - Rainy - 17/8",
                 "Today - Cloudy - 16/8",
@@ -49,7 +83,6 @@ public class ForecastFragment extends Fragment {
         List<String> fakeData = new ArrayList<String>(Arrays.asList(fakeDataArray));
 
 
-        String weathwrAPIUrl = "http://api.openweathermap.org/data/2.5/forecast?q=Moscow,ru&appid=2bec85f095f36e589c16cc58de321265&units=metric";
         new FetchWeatherTask().execute(weathwrAPIUrl);
 
 
