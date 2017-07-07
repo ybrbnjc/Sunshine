@@ -38,8 +38,8 @@ import java.text.SimpleDateFormat;
  * Created by admin on 26.06.2017.
  */
 public class ForecastFragment extends Fragment {
-    
-	
+
+
     private ListView forecastListview;
 
     public ForecastFragment() {
@@ -89,8 +89,91 @@ public class ForecastFragment extends Fragment {
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
-		
-		protected String[] doInBackground(String... postalCode) {
+
+        /* The date/time conversion code is going to be moved outside the asynctask later,
+                 * so for convenience we're breaking it out into its own method now.
+                 */
+        private String getReadableDateString(long time) {
+            // Because the API returns a unix timestamp (measured in seconds),
+            // it must be converted to milliseconds in order to be converted to valid date.
+            Date date = new Date(time * 1000);
+            SimpleDateFormat format = new SimpleDateFormat("E, d MMM HH:mm");
+            return format.format(date).toString();
+        }
+
+        /**
+         * Prepare the weather high/lows for presentation.
+         */
+        private String formatHighLows(double high, double low) {
+            // For presentation, assume the user doesn't care about tenths of a degree.
+            long roundedHigh = Math.round(high);
+            long roundedLow = Math.round(low);
+
+            String highLowStr = roundedHigh + "/" + roundedLow;
+            return highLowStr;
+        }
+
+        /**
+         * Take the String representing the complete forecast in JSON Format and
+         * pull out the data we need to construct the Strings needed for the wireframes.
+         * <p>
+         * Fortunately parsing is easy:  constructor takes the JSON string and converts it
+         * into an Object hierarchy for us.
+         */
+        private String[] getWeatherDataFromJson(String forecastJsonStr)
+                throws JSONException {
+
+            // These are the names of the JSON objects that need to be extracted.
+            final String OWM_LIST = "list";
+            final String OWM_WEATHER = "weather";
+            final String OWM_ENTRIES = "cnt";
+            final String OWM_MAX = "temp_max";
+            final String OWM_MIN = "temp_min";
+            final String OWM_DATETIME = "dt";
+            final String OWM_DESCRIPTION = "main";
+
+            JSONObject forecastJson = new JSONObject(forecastJsonStr);
+            int numDays = forecastJson.getInt(OWM_ENTRIES);
+            JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
+            Log.v(LOG_TAG, "Entries from JSON:" + numDays + ", entries in array:" + weatherArray.length());
+
+            String[] resultStrs = new String[numDays];
+            try {
+                for (int i = 0; i < numDays; i++) {
+                    // For now, using the format "Day, description, hi/low"
+                    String day;
+                    String description;
+                    String highAndLow;
+
+                    // Get the JSON object representing the day
+                    JSONObject dayForecast = weatherArray.getJSONObject(i);
+
+                    // The date/time is returned as a long.  We need to convert that
+                    // into something human-readable, since most people won't read "1400356800" as
+                    // "this saturday".
+                    long dateTime = dayForecast.getLong(OWM_DATETIME);
+                    day = getReadableDateString(dateTime);
+
+                    // description is in a child array called "weather", which is 1 element long.
+                    JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
+                    description = weatherObject.getString(OWM_DESCRIPTION);
+
+                    // Temperatures are in a child object called "temp".  Try not to name variables
+                    // "temp" when working with temperature.  It confuses everybody.
+                    JSONObject temperatureObject = dayForecast.getJSONObject(OWM_DESCRIPTION);
+                    double high = temperatureObject.getDouble(OWM_MAX);
+                    double low = temperatureObject.getDouble(OWM_MIN);
+
+                    highAndLow = formatHighLows(high, low);
+                    resultStrs[i] = day + " - " + description + " - " + highAndLow;
+                }
+            } catch (JSONException jse) {
+            }
+            return resultStrs;
+
+        }
+
+        protected String[] doInBackground(String... postalCode) {
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -145,7 +228,7 @@ public class ForecastFragment extends Fragment {
                 }
                 forecastJsonStr = buffer.toString();
             } catch (IOException e) {
-                Log.e("ForecastFragment", "Error ", e);
+                Log.e("ForecastFragment", "Error reading data from OWM", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
                 // to parse it.
                 forecastJsonStr = null;
@@ -161,112 +244,31 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }
-			Log.v(LOG_TAG,forecastJsonStr);
-            if (forecastJsonStr != null) {
-            try {
-                resultStr = getWeatherDataFromJson(forecastJsonStr, 3);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-				e.printStackTrace();
+
+            if (forecastJsonStr == null) {
+                Log.e(LOG_TAG, "JSON raw string is empty");
+            } else {
+                try {
+                    resultStr = getWeatherDataFromJson(forecastJsonStr);
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, e.getMessage(), e);
+                    e.printStackTrace();
+                }
             }
-			}
-            else Log.e(LOG_TAG, "JSON raw string is empty");
             return resultStr;
-
         }
 
-        /* The date/time conversion code is going to be moved outside the asynctask later,
-         * so for convenience we're breaking it out into its own method now.
-         */
-        private String getReadableDateString(long time) {
-            // Because the API returns a unix timestamp (measured in seconds),
-            // it must be converted to milliseconds in order to be converted to valid date.
-            Date date = new Date(time * 1000);
-            SimpleDateFormat format = new SimpleDateFormat("E, MMM d");
-            return format.format(date).toString();
-        }
-
-        /**
-         * Prepare the weather high/lows for presentation.
-         */
-        private String formatHighLows(double high, double low) {
-            // For presentation, assume the user doesn't care about tenths of a degree.
-            long roundedHigh = Math.round(high);
-            long roundedLow = Math.round(low);
-
-            String highLowStr = roundedHigh + "/" + roundedLow;
-            return highLowStr;
-        }
-
-        /**
-         * Take the String representing the complete forecast in JSON Format and
-         * pull out the data we need to construct the Strings needed for the wireframes.
-         * <p>
-         * Fortunately parsing is easy:  constructor takes the JSON string and converts it
-         * into an Object hierarchy for us.
-         */
-        private String[] getWeatherDataFromJson(String forecastJsonStr, int numDays)
-                throws JSONException {
-
-            // These are the names of the JSON objects that need to be extracted.
-            final String OWM_LIST = "list";
-            final String OWM_WEATHER = "weather";
-            final String OWM_TEMPERATURE = "temp";
-            final String OWM_MAX = "max";
-            final String OWM_MIN = "min";
-            final String OWM_DATETIME = "dt";
-            final String OWM_DESCRIPTION = "main";
-
-            JSONObject forecastJson = new JSONObject(forecastJsonStr);
-            JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
-
-            String[] resultStrs = new String[numDays];
-			try
-			{
-            for (int i = 0; i < weatherArray.length(); i++) {
-                // For now, using the format "Day, description, hi/low"
-                String day;
-                String description;
-                String highAndLow;
-
-                // Get the JSON object representing the day
-                JSONObject dayForecast = weatherArray.getJSONObject(i);
-
-                // The date/time is returned as a long.  We need to convert that
-                // into something human-readable, since most people won't read "1400356800" as
-                // "this saturday".
-                long dateTime = dayForecast.getLong(OWM_DATETIME);
-                day = getReadableDateString(dateTime);
-
-                // description is in a child array called "weather", which is 1 element long.
-                JSONObject weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
-                description = weatherObject.getString(OWM_DESCRIPTION);
-
-                // Temperatures are in a child object called "temp".  Try not to name variables
-                // "temp" when working with temperature.  It confuses everybody.
-                JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-                double high = temperatureObject.getDouble(OWM_MAX);
-                double low = temperatureObject.getDouble(OWM_MIN);
-
-                highAndLow = formatHighLows(high, low);
-                resultStrs[i] = day + " - " + description + " - " + highAndLow;
-            }
-			} catch (JSONException jse) {}
-			Log.v("lookatme",resultStrs[0]);
-            return resultStrs;
-
-        }
 
         @Override
         protected void onPostExecute(String[] s) {
+
             List<String> data = new ArrayList<String>(Arrays.asList(s));
             ArrayAdapter<String> mForecastAdapter = new ArrayAdapter<String>(
                     getActivity(),
                     R.layout.list_item_forecast,
                     R.id.list_item_forecast_text_view,
                     data);
-
-
+            forecastListview.setAdapter(mForecastAdapter);
         }
     }
 
