@@ -42,7 +42,8 @@ public class ForecastFragment extends Fragment {
 
     private final String cityCode = "524901";
     private SwipeRefreshLayout mSwipeRefreshLayout;
-    private ListView forecastListview;
+	private ArrayAdapter<String> mForecastAdapter;
+    //private ListView forecastListview;
 
     public ForecastFragment() {
 
@@ -89,9 +90,14 @@ public class ForecastFragment extends Fragment {
                 mSwipeRefreshLayout.setRefreshing(false);
             }
         });
-        forecastListview = (ListView) rootView.findViewById(R.id.listview_forecast);
-
-        new FetchWeatherTask().execute(cityCode);
+        ListView forecastListview = (ListView) rootView.findViewById(R.id.listview_forecast);
+		mForecastAdapter = new ArrayAdapter<String>(
+			getActivity(),
+			R.layout.list_item_forecast,
+			R.id.list_item_forecast_text_view,
+			new String[]{"Couldn't get data from server"});
+		forecastListview.setAdapter(mForecastAdapter);
+        //new FetchWeatherTask().execute(cityCode);
 
         return rootView;
     }
@@ -270,12 +276,13 @@ public class ForecastFragment extends Fragment {
         protected void onPostExecute(String[] s) {
 
             List<String> data = new ArrayList<String>(Arrays.asList(s));
-            ArrayAdapter<String> mForecastAdapter = new ArrayAdapter<String>(
-                    getActivity(),
-                    R.layout.list_item_forecast,
-                    R.id.list_item_forecast_text_view,
-                    data);
-            forecastListview.setAdapter(mForecastAdapter);
+            if (s != null) {
+				mForecastAdapter.clear();
+				for (String forecastEntry : s) {
+					mForecastAdapter.add(forecastEntry);
+				}
+			}
+			
         }
     }
 
