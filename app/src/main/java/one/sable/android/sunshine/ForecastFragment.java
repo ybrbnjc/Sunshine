@@ -160,12 +160,14 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }
-            if (forecastJsonStr != null)
+			Log.v("eaaaaaat",forecastJsonStr);
+            if (forecastJsonStr != null) {
             try {
                 resultStr = getWeatherDataFromJson(forecastJsonStr, 28);
             } catch (JSONException e) {
                 Log.e("ForecastFragment", "Error parsing JSON string");
             }
+			}
             else Log.e("ForecastFragment", "JSON raw string is empty");
             return resultStr;
 
@@ -217,6 +219,8 @@ public class ForecastFragment extends Fragment {
             JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
             String[] resultStrs = new String[numDays];
+			try
+			{
             for (int i = 0; i < weatherArray.length(); i++) {
                 // For now, using the format "Day, description, hi/low"
                 String day;
@@ -245,7 +249,8 @@ public class ForecastFragment extends Fragment {
                 highAndLow = formatHighLows(high, low);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
-
+			} catch (JSONException jse) {}
+			Log.v("lookatme",resultStrs[0]);
             return resultStrs;
 
         }
