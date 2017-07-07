@@ -3,6 +3,7 @@ package one.sable.android.sunshine;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,7 +40,8 @@ import java.text.SimpleDateFormat;
  */
 public class ForecastFragment extends Fragment {
 
-
+    private final String cityCode = "524901";
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private ListView forecastListview;
 
     public ForecastFragment() {
@@ -67,7 +69,7 @@ public class ForecastFragment extends Fragment {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh) {
-            new FetchWeatherTask().execute("524901");
+            new FetchWeatherTask().execute(cityCode);
             return true;
         }
 
@@ -79,9 +81,17 @@ public class ForecastFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
+        mSwipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container);
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new FetchWeatherTask().execute(cityCode);
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        });
         forecastListview = (ListView) rootView.findViewById(R.id.listview_forecast);
 
-        new FetchWeatherTask().execute("524901");
+        new FetchWeatherTask().execute(cityCode);
 
         return rootView;
     }
@@ -126,20 +136,17 @@ public class ForecastFragment extends Fragment {
             // These are the names of the JSON objects that need to be extracted.
             final String OWM_LIST = "list";
             final String OWM_WEATHER = "weather";
-            final String OWM_ENTRIES = "cnt";
-            final String OWM_MAX = "temp_max";
-            final String OWM_MIN = "temp_min";
+            final String OWM_TEMP_MAX = "temp_max";
+            final String OWM_TEMP_MIN = "temp_min";
             final String OWM_DATETIME = "dt";
             final String OWM_DESCRIPTION = "main";
 
             JSONObject forecastJson = new JSONObject(forecastJsonStr);
-            int numDays = forecastJson.getInt(OWM_ENTRIES);
             JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
-            Log.v(LOG_TAG, "Entries from JSON:" + numDays + ", entries in array:" + weatherArray.length());
 
-            String[] resultStrs = new String[numDays];
+            String[] resultStrs = new String[weatherArray.length()];
             try {
-                for (int i = 0; i < numDays; i++) {
+                for (int i = 0; i < weatherArray.length(); i++) {
                     // For now, using the format "Day, description, hi/low"
                     String day;
                     String description;
@@ -161,8 +168,8 @@ public class ForecastFragment extends Fragment {
                     // Temperatures are in a child object called "temp".  Try not to name variables
                     // "temp" when working with temperature.  It confuses everybody.
                     JSONObject temperatureObject = dayForecast.getJSONObject(OWM_DESCRIPTION);
-                    double high = temperatureObject.getDouble(OWM_MAX);
-                    double low = temperatureObject.getDouble(OWM_MIN);
+                    double high = temperatureObject.getDouble(OWM_TEMP_MAX);
+                    double low = temperatureObject.getDouble(OWM_TEMP_MIN);
 
                     highAndLow = formatHighLows(high, low);
                     resultStrs[i] = day + " - " + description + " - " + highAndLow;

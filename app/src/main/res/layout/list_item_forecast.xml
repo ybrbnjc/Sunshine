@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:minHeight="?android:attr/listPreferredItemHeight"
-    android:text="Today - Sunny - 86/65"
+    android:text=""
     android:textAppearance="?android:attr/textAppearanceMedium">
 </TextView>
 
