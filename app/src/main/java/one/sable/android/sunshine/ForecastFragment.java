@@ -38,9 +38,8 @@ import java.text.SimpleDateFormat;
  * Created by admin on 26.06.2017.
  */
 public class ForecastFragment extends Fragment {
-
-
-    //private ArrayAdapter<String> mForecastAdapter;
+    
+	
     private ListView forecastListview;
 
     public ForecastFragment() {
@@ -89,7 +88,9 @@ public class ForecastFragment extends Fragment {
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
-        protected String[] doInBackground(String... postalCode) {
+        private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
+		
+		protected String[] doInBackground(String... postalCode) {
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -160,15 +161,16 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }
-			Log.v("eaaaaaat",forecastJsonStr);
+			Log.v(LOG_TAG,forecastJsonStr);
             if (forecastJsonStr != null) {
             try {
-                resultStr = getWeatherDataFromJson(forecastJsonStr, 28);
+                resultStr = getWeatherDataFromJson(forecastJsonStr, 3);
             } catch (JSONException e) {
-                Log.e("ForecastFragment", "Error parsing JSON string");
+                Log.e(LOG_TAG, e.getMessage(), e);
+				e.printStackTrace();
             }
 			}
-            else Log.e("ForecastFragment", "JSON raw string is empty");
+            else Log.e(LOG_TAG, "JSON raw string is empty");
             return resultStr;
 
         }
