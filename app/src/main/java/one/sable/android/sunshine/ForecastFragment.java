@@ -95,9 +95,9 @@ public class ForecastFragment extends Fragment {
 			getActivity(),
 			R.layout.list_item_forecast,
 			R.id.list_item_forecast_text_view,
-			new String[]{"Couldn't get data from server"});
+			new ArrayList<String> (Arrays.asList(new String[]{"Couldn't get data from server"})));
 		forecastListview.setAdapter(mForecastAdapter);
-        //new FetchWeatherTask().execute(cityCode);
+        new FetchWeatherTask().execute(cityCode);
 
         return rootView;
     }
@@ -274,8 +274,6 @@ public class ForecastFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] s) {
-
-            List<String> data = new ArrayList<String>(Arrays.asList(s));
             if (s != null) {
 				mForecastAdapter.clear();
 				for (String forecastEntry : s) {
