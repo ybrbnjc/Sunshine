@@ -23,7 +23,7 @@ public class MainActivity extends ActionBarActivity {
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		// TODO: Implement this method
-		getMenuInflater().inflate(R.layout.simple_menu, menu);
+		getMenuInflater().inflate(R.layout.menu_activity_main, menu);
 		return true;
 	}
 

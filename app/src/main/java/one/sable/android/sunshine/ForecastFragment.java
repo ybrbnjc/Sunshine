@@ -33,17 +33,19 @@ import org.json.JSONException;
 
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import android.content.Intent;
+import android.widget.AdapterView;
+import android.widget.AdapterView.*;
 
 
 /**
- * Created by admin on 26.06.2017.
+ * Created by VNV on 26.06.2017.
  */
 public class ForecastFragment extends Fragment {
 
     private final String cityCode = "524901";
     private SwipeRefreshLayout mSwipeRefreshLayout;
 	private ArrayAdapter<String> mForecastAdapter;
-    //private ListView forecastListview;
 
     public ForecastFragment() {
 
@@ -58,7 +60,7 @@ public class ForecastFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        inflater.inflate(R.layout.forecastfragment, menu);
+        inflater.inflate(R.layout.menu_forecast_fragment, menu);
     }
 
     @Override
@@ -97,6 +99,15 @@ public class ForecastFragment extends Fragment {
 			R.id.list_item_forecast_text_view,
 			new ArrayList<String> (Arrays.asList(new String[]{"Couldn't get data from server"})));
 		forecastListview.setAdapter(mForecastAdapter);
+		
+		forecastListview.setOnItemClickListener(new OnItemClickListener() {
+
+			public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+				Intent intent = new Intent(getActivity(), DetailActivity.class);
+				startActivity(intent);
+			}
+		});
+		
         new FetchWeatherTask().execute(cityCode);
 
         return rootView;
