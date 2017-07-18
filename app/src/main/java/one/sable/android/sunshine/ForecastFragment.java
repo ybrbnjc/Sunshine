@@ -100,9 +100,9 @@ public class ForecastFragment extends Fragment {
 			new ArrayList<String> (Arrays.asList(new String[]{"Couldn't get data from server"})));
 		forecastListview.setAdapter(mForecastAdapter);
 		
-		forecastListview.setOnItemClickListener(new OnItemClickListener() {
+		forecastListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-			public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+			public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 				Intent intent = new Intent(getActivity(), DetailActivity.class);
 				startActivity(intent);
 			}
