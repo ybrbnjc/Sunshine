@@ -12,6 +12,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.*;
+import android.content.*;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -31,7 +33,7 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.layout.menu_activity_detail, menu);
-        return true;
+		return true;
     }
 
     @Override
@@ -62,7 +64,16 @@ public class DetailActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
 
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-            return rootView;
+			
+            
+			Intent intent = getActivity().getIntent();
+			if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT))
+			{
+				TextView forecastTextView = (TextView) rootView.findViewById(R.id.fragment_detail_textview);
+				String forecast = intent.getStringExtra(Intent.EXTRA_TEXT);
+				forecastTextView.setText(forecast);
+			}
+			return rootView;
         }
     }
 }
